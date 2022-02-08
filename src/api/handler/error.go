@@ -25,7 +25,7 @@ func ErrorResponse(w http.ResponseWriter, err error) {
 	_, internalok := errors.Cause(err).(internalError)
 
 	if internalok {
-		fmt.Printf("general Error: %s", err.Error())
+		fmt.Printf("internal Error: %s", err.Error())
 	}
 
 	fmt.Printf("undefined Error: %s", err.Error())

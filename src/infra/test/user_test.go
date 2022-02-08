@@ -23,6 +23,10 @@ func TestUser_Create(t *testing.T) {
 		},
 	}
 
+	//sql.Open("txdb", uuid.New().String())をすることでテストごとに干渉しあわないDBを作っている
+	//t.Run()の粒度で干渉させたくないならt.Runの中に、func Test~の粒度ならfunc Testの内側どこでもで、
+	//sql.Open("txdb", uuid.New().String())をすればいい...はず
+
 	for name, c := range cases {
 		c := c
 		t.Run(name, func(t *testing.T) {
@@ -47,11 +51,16 @@ func TestUser_Create(t *testing.T) {
 }
 
 func Len2(t *testing.T, repo *user.UserPostgres) {
+	//repo_test内のfixtureで最初に2ユーザーを作ってある
 	list, _ := repo.List()
 	require.Equal(t, 2, len(list))
 }
 
 func Len3(t *testing.T, repo *user.UserPostgres) {
+
+	ll, _ := repo.List()
+	require.Equal(t, 2, len(ll))
+
 	u1 := entity.NewUserFromDB(entity.NewID(), "len3")
 	r1, _ := repo.Create(u1)
 	require.Equal(t, u1.GetId(), r1.GetId())
@@ -92,8 +101,9 @@ func TestUser_List(t *testing.T) {
 		},
 	}
 
-	db, err := sql.Open("txdb", uuid.New().String())
-	require.NoError(t, err)
+	//このテストではt.Runレベルで隔離したいため、Openはt.Run()内に書く
+	// db, err := sql.Open("txdb", uuid.New().String())
+	// require.NoError(t, err)
 	// defer db.Close()
 
 	for name, c := range cases {
@@ -101,9 +111,9 @@ func TestUser_List(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			// db, err := sql.Open("txdb", uuid.New().String())
-			// require.NoError(t, err)
-			// defer db.Close()
+			db, err := sql.Open("txdb", uuid.New().String())
+			require.NoError(t, err)
+			defer db.Close()
 
 			repo := user.NewUserPostgres(db)
 			c.fn(t, repo)
