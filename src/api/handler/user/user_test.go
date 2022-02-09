@@ -81,6 +81,7 @@ func Test_getUser(t *testing.T) {
 	require.Equal(t, user.GetId(), u.Id)
 }
 
+//generalError
 func Test_getUserError(t *testing.T) {
 	repo := infra.NewInmem()
 	u := usecase.NewService(repo)
@@ -102,9 +103,15 @@ func Test_getUserError(t *testing.T) {
 
 	res, err := http.Get(ts.URL + "/user/" + "dummy")
 	require.Nil(t, err)
+
+	require.Equal(t, resp.StatusCode, 500)
+
 	defer res.Body.Close()
 
 }
+
+//今回はcreateUserをgeneralError,getUserをinfraErrorのみとしている
+//本当はcreateUserでもgeneralError(ユーザーの入力ミスとか)だったりinfraError(DBの接続不良とか)だったりするだろうけど
 
 func Test_createUserError(t *testing.T) {
 	repo := infra.NewInmem()
@@ -123,6 +130,14 @@ func Test_createUserError(t *testing.T) {
 	 }`)
 	resp, err := http.Post(ts.URL+"/user", "application/json", strings.NewReader(payload))
 	require.Nil(t, err)
+
+	require.Equal(t, resp.StatusCode, 500)
+
+	var bytes []byte
+	resp.Body.Read(bytes)
+
+	ret := string(bytes)
+	require.Equal(t, ret, "test")
 
 	defer resp.Body.Close()
 
