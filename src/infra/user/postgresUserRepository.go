@@ -5,7 +5,9 @@ import (
 
 	"github.com/go-gorp/gorp"
 
+	"github.com/stonelike/CleanGo/src/codes"
 	"github.com/stonelike/CleanGo/src/domain/entity"
+	"github.com/stonelike/CleanGo/src/myerrors"
 )
 
 type UserPostgres struct {
@@ -27,7 +29,8 @@ func (r *UserPostgres) Create(e *entity.User) (*entity.User, error) {
 
 	err := dbmap.Insert(&UserDao{Id: e.GetId(), Name: e.GetName()})
 	if err != nil {
-		return nil, err
+		//本当はここでerr別でswitchがいる
+		return &entity.User{}, myerrors.Errorf(codes.Database, "%s", err)
 	}
 
 	return e, nil
@@ -41,7 +44,8 @@ func (r *UserPostgres) FindById(id string) (*entity.User, error) {
 	err := dbmap.SelectOne(dao, `select id,name user where id=$1`, id)
 
 	if err != nil {
-		return nil, err
+		//本当はここでerr別でswitchがいる
+		return &entity.User{}, myerrors.Errorf(codes.Database, "%s", err)
 	}
 	return dao.ConvertToEntity(), nil
 
@@ -55,7 +59,7 @@ func (r *UserPostgres) List() ([]*entity.User, error) {
 	_, err := dbmap.Select(&userList, `select * from users`)
 
 	if err != nil {
-		return nil, err
+		return nil, myerrors.Errorf(codes.Database, "%s", err)
 	}
 
 	return ConvertDaosToEntities(userList), nil

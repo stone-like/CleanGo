@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
-	"github.com/pkg/errors"
+	"github.com/stonelike/CleanGo/src/api/codes"
+	"github.com/stonelike/CleanGo/src/myerrors"
 )
 
 type generalError interface {
@@ -15,22 +16,25 @@ type internalError interface {
 	Internal() bool
 }
 
-func ErrorResponse(w http.ResponseWriter, err error) {
-	_, genok := errors.Cause(err).(generalError)
+func HttpErrorResponse(w http.ResponseWriter, err error) {
+	// _, genok := errors.Cause(err).(generalError)
 
-	if genok {
-		fmt.Printf("general Error: %s", err.Error())
-	}
+	// if genok {
+	// 	fmt.Printf("general Error: %s", err.Error())
+	// }
 
-	_, internalok := errors.Cause(err).(internalError)
+	// _, internalok := errors.Cause(err).(internalError)
 
-	if internalok {
-		fmt.Printf("internal Error: %s", err.Error())
-	}
+	// if internalok {
+	// 	fmt.Printf("internal Error: %s", err.Error())
+	// }
 
-	fmt.Printf("undefined Error: %s", err.Error())
+	// fmt.Printf("undefined Error: %s", err.Error())
 
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(err.Error()))
+	w.WriteHeader(codes.ToHttpCode(err))
+
+	log.Printf("%+v", err)
+
+	w.Write([]byte(myerrors.UserInfo(err)))
 
 }

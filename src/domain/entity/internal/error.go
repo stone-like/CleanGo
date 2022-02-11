@@ -1,12 +1,17 @@
 package entity
 
-import "errors"
+// //ErrNotFound not found
+// var ErrNotFound = errors.New("Not found")
 
-//ErrNotFound not found
-var ErrNotFound = errors.New("Not found")
+// //ErrInvalidEntity invalid entity
+// var ErrInvalidEntity = errors.New("Invalid entity")
 
-//ErrInvalidEntity invalid entity
-var ErrInvalidEntity = errors.New("Invalid entity")
+//Entityで共通のエラー
+const (
+	ErrInvalidEntity = "InvalidEntity %s"
+)
+
+//Codesを使うなら下記は使用しない
 
 type GeneralError struct {
 	Err error

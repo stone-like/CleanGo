@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
+
 	"github.com/stonelike/CleanGo/src/api/presenter"
 	"github.com/stonelike/CleanGo/src/domain/entity"
 	infra "github.com/stonelike/CleanGo/src/infra/user"
@@ -81,7 +83,6 @@ func Test_getUser(t *testing.T) {
 	require.Equal(t, user.GetId(), u.Id)
 }
 
-//generalError
 func Test_getUserError(t *testing.T) {
 	repo := infra.NewInmem()
 	u := usecase.NewService(repo)
@@ -101,17 +102,19 @@ func Test_getUserError(t *testing.T) {
 	require.Nil(t, err)
 	defer resp.Body.Close()
 
-	res, err := http.Get(ts.URL + "/user/" + "dummy")
+	resp, err = http.Get(ts.URL + "/user/" + "dummy")
 	require.Nil(t, err)
 
-	require.Equal(t, resp.StatusCode, 500)
+	require.Equal(t, 500, resp.StatusCode)
 
-	defer res.Body.Close()
+	defer resp.Body.Close()
+
+	ret, err := io.ReadAll(resp.Body)
+	require.Nil(t, err)
+
+	require.Equal(t, "userId dummy is not found", string(ret))
 
 }
-
-//今回はcreateUserをgeneralError,getUserをinfraErrorのみとしている
-//本当はcreateUserでもgeneralError(ユーザーの入力ミスとか)だったりinfraError(DBの接続不良とか)だったりするだろうけど
 
 func Test_createUserError(t *testing.T) {
 	repo := infra.NewInmem()
@@ -120,25 +123,23 @@ func Test_createUserError(t *testing.T) {
 	n := negroni.New()
 	MakeUserHandlers(r, *n, u)
 
-	handler := getUser(u)
-	r.Handle("user/{id}", handler)
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
 	payload := fmt.Sprintf(`{
 		"name": "testtttttttt"
 	 }`)
+
 	resp, err := http.Post(ts.URL+"/user", "application/json", strings.NewReader(payload))
 	require.Nil(t, err)
 
-	require.Equal(t, resp.StatusCode, 500)
-
-	var bytes []byte
-	resp.Body.Read(bytes)
-
-	ret := string(bytes)
-	require.Equal(t, ret, "test")
+	require.Equal(t, 400, resp.StatusCode)
 
 	defer resp.Body.Close()
+
+	ret, err := io.ReadAll(resp.Body)
+	require.Nil(t, err)
+
+	require.Equal(t, "InvalidEntity user", string(ret))
 
 }

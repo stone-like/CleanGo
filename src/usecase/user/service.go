@@ -19,19 +19,24 @@ func NewService(r user.Repository) *Service {
 func (s *Service) CreateUser(name string) (*entity.User, error) {
 	e, err := entity.NewUser(name)
 
-	//ここ後でwrapするように修正
+	//ここでUsecase層にてwrapしていないけど、myerrorsのスタックトレースでとってこれる
 	if err != nil {
-		return nil, errors.Wrap(err, "[usecase] createUserError")
+		return &entity.User{}, errors.Wrap(err, "[usecase] CreateUser")
 	}
 
-	return s.repo.Create(e)
+	e, err = s.repo.Create(e)
+	if err != nil {
+		return &entity.User{}, errors.Wrap(err, "[usecase] CreateUser")
+	}
+
+	return e, nil
 }
 
 func (s *Service) FindById(id string) (*entity.User, error) {
 	u, err := s.repo.FindById(id)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "[usecase] userFindByError")
+		return &entity.User{}, errors.Wrap(err, "[usecase] FindById")
 	}
 
 	return u, nil

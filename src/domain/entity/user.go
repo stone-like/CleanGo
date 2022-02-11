@@ -1,7 +1,9 @@
 package entity
 
 import (
-	in "github.com/stonelike/CleanGo/src/domain/entity/internal"
+	"github.com/stonelike/CleanGo/src/codes"
+	entity "github.com/stonelike/CleanGo/src/domain/entity/internal"
+	"github.com/stonelike/CleanGo/src/myerrors"
 )
 
 type User struct {
@@ -15,8 +17,9 @@ func NewUser(name string) (*User, error) {
 		name: name,
 	}
 
+	//エラーのときはnilを返すことを避けた方がいいみたい、errに気づかないで*User(nil)に対して操作をしてしまったとき対策
 	if err := u.Validate(); err != nil {
-		return nil, err
+		return &User{}, err
 	}
 
 	return u, nil
@@ -31,9 +34,7 @@ func NewUserFromDB(id, name string) *User {
 
 func (u *User) Validate() error {
 	if u.name == "" || len(u.name) > 5 {
-		return &in.GeneralError{
-			Err: in.ErrInvalidEntity,
-		}
+		return myerrors.Errorf(codes.InvalidRequest, entity.ErrInvalidEntity, "user")
 	}
 
 	return nil

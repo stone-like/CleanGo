@@ -3,10 +3,9 @@ package user
 import (
 	"sync"
 
-	"errors"
-
+	"github.com/stonelike/CleanGo/src/codes"
 	"github.com/stonelike/CleanGo/src/domain/entity"
-	in "github.com/stonelike/CleanGo/src/infra/internal"
+	"github.com/stonelike/CleanGo/src/myerrors"
 )
 
 type inmemRepository struct {
@@ -38,12 +37,8 @@ func (i *inmemRepository) FindById(id string) (*entity.User, error) {
 
 	val, ok := i.m[id]
 
-	err := errors.New("User Not Found")
 	if !ok {
-		return nil, &in.InfraError{
-			Message:      "inmem error",
-			OrignalError: err,
-		}
+		return &entity.User{}, myerrors.Errorf(codes.Database, "userId %s is not found", id)
 	}
 
 	return val, nil

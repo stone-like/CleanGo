@@ -32,7 +32,7 @@ func createUser(service user.UseCase) http.Handler {
 
 			w.Header().Set("Content-Type", "application/json")
 			if err != nil {
-				handler.ErrorResponse(w, err)
+				handler.HttpErrorResponse(w, err)
 				return
 			}
 
@@ -60,7 +60,7 @@ func getUser(service user.UseCase) http.Handler {
 			user, err := service.FindById(vars["id"])
 			w.Header().Set("Content-Type", "application/json")
 			if err != nil {
-				handler.ErrorResponse(w, err)
+				handler.HttpErrorResponse(w, err)
 				return
 			}
 
